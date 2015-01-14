@@ -96,13 +96,10 @@ if (isset($_POST['libro']) && !empty($_POST['libro']) && isset($_POST['capitulo'
 	// Get Bible Book Name
 	$row8 = mysql_fetch_array($bible_result8);
 	$bible_book = $row8["texto"];
-	echo '</br>';
-	$capitulo_prev = $capitulo - 1;
-	$capitulo_next = $capitulo + 1;
 	biblia_fonts();
 
 	// Display Book Name and Chapter
-	echo '<table width="100%" cellpadding="0" cellspacing="0" border="0">';
+	echo '</br><table width="100%" cellpadding="0" cellspacing="0" border="0">';
 	echo '<tr><td align="center"><h1>' . $bible_book . ' ' . $capitulo . '</h1></td></tr></table>';
 
 	// Display the Bible version name
@@ -123,6 +120,9 @@ if (isset($_POST['libro']) && !empty($_POST['libro']) && isset($_POST['capitulo'
 	echo "<input type=\"hidden\" name=\"libro\" value=\"" . $libro . "\" />";
 	echo "</select></form></td><td width=\"5\"></td>";
 
+	$capitulo_prev = $capitulo - 1;
+	$capitulo_next = $capitulo + 1;
+
 	// Display previous chapter button
 	if ($capitulo > 1) {
 		echo "<td><form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
@@ -130,35 +130,31 @@ if (isset($_POST['libro']) && !empty($_POST['libro']) && isset($_POST['capitulo'
 		 <input type=\"hidden\" name=\"capitulo\" value=\"" . $capitulo_prev . "\" />
 		 <input type=\"hidden\" name=\"version\" value=\"" . $version . "\" />
 		 <input type=\"submit\" value=\"<< Cap&iacute;tulo\" class=\"boton\" />
-		 </form>
-	</td>";
+		 </form></td><td width=\"5\"></td>";
 	}
 	else {
 		$empty_td = '<td>&nbsp;</td>';
 	}
 
-	// Display next chapter button
-	echo "
-    <td width=\"5\"></td>
-    <td><form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
-    <input type=\"hidden\" name=\"libro\" value=\"" . $libro . "\" />
-	<input type=\"hidden\" name=\"capitulo\" value=\"" . $capitulo_next . "\" />
-	<input type=\"hidden\" name=\"version\" value=\"" . $version . "\" />
-	<input type=\"submit\" value=\"Cap&iacute;tulo >>\" class=\"boton\" />
-	</form></td>
+	// Check to see whether there is a next chapter or not
+	$find_chapter = mysql_query("SELECT libro, capitulo FROM $table_name WHERE libro='$libro' AND capitulo='$capitulo_next'");
+	if (mysql_num_rows($find_chapter)) {
+	// Button Capitulo Siguiente
+	echo '<td><form class="bendicion-bible" action="http://bendicion.net/biblia_y_concordancia.php" method="post">
+    <input type="hidden" name="libro" value="'.$libro.'" />
+	<input type="hidden" name="capitulo" value="'.$capitulo_next.'" />
+	<input type="hidden" name="version" value="'.$version.'" />
+	<input type="submit" value="Cap&iacute;tulo >>" class="boton" />
+	</form></td><td width="5"></td>';
+	}
 	
-	<td width=\"5\"></td>
-	
-	<td>
-	<form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
+	// Button Libro anterior
+	echo "<td><form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
 	<input type=\"hidden\" name=\"libro\" value=\"" . $libro_prev . "\" />
 	<input type=\"hidden\" name=\"capitulo\" value=\"1\" />
 	<input type=\"hidden\" name=\"version\" value=\"" . $version . "\" />
 	<input type=\"submit\" value=\"<< Libro\" class=\"boton\" />
-	</form>
-	</td>	
-	
-	<td width=\"5\"></td>
+	</form></td><td width=\"5\"></td>
 	
 	<td>
 	<form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
@@ -166,22 +162,17 @@ if (isset($_POST['libro']) && !empty($_POST['libro']) && isset($_POST['capitulo'
 	<input type=\"hidden\" name=\"capitulo\" value=\"1\" />
 	<input type=\"hidden\" name=\"version\" value=\"" . $version . "\" />
 	<input type=\"submit\" value=\"Libro >>\" class=\"boton\" />
-	</form>
-	</td>
-	
-	<td width=\"5\"></td>
-    <td>
-    <form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
+	</form></td><td width=\"5\"></td>
+    
+	<td><form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">
     <input type=\"hidden\" name=\"paralelo_cap\" value=\"" . $capitulo . "\" />
     <input type=\"hidden\" name=\"version_left\" value=\"biblia_1960\">
     <input type=\"hidden\" name=\"version_right\" value=\"biblia_1909\">
     <input type=\"hidden\" name=\"paralelo\" value=\"" . $libro . "\" />
-    <input type=\"submit\" value=\"Paralelo\" class=\"boton\" /></form></td>";
+    <input type=\"submit\" value=\"Paralelo\" class=\"boton\" /></form></td><td width=\"5\"></td>";
 
 	// Display Font Size Change /////////////////////////
-	echo "
-	<td width=\"5\"></td>
-    <td><a href=\"javascript:decreaseFontSize();\"><img src=\"http://biblia.bendicion.net/img/disminuir.png\" width=\"30\" height=\"30\" border=\"0\" valign=\"top\" /></a></td>
+	echo "<td><a href=\"javascript:decreaseFontSize();\"><img src=\"http://biblia.bendicion.net/img/disminuir.png\" width=\"30\" height=\"30\" border=\"0\" valign=\"top\" /></a></td>
     <td width=\"5\"></td>
     <td><a href=\"javascript:increaseFontSize();\"><img src=\"http://biblia.bendicion.net/img/aumentar.png\" width=\"30\" height=\"30\" border=\"0\" valign=\"top\" /></a></td>";
 	echo $empty_td;
@@ -415,9 +406,13 @@ if (isset($_POST['paralelo']) && isset($_POST['paralelo_cap']) && isset($_POST['
 		echo "<input type=\"submit\" value=\"<< Cap&iacute;tulo\" class=\"boton\" /></form></td>";
 		echo '<td width="5"></td>';
 	} // end if
-
-	// Input button Capitulo Siguiente
+	
 	$capitulo_next = $capitulo + 1;
+	// Check to see whether there is a next chapter or not
+	$find_chapter = mysql_query("SELECT libro, capitulo FROM $left_table_name WHERE libro='$libro' AND capitulo='$capitulo_next'");
+			if (mysql_num_rows($find_chapter)) {
+	
+	// Input button Capitulo Siguiente
 	echo '<td align="left">';
 	echo "<form class=\"bendicion-bible\" action=\"http://bendicion.net/biblia_y_concordancia.php\" method=\"post\">";
 	echo "<input type=\"hidden\" name=\"paralelo\" value=\"" . $libro . "\" />";
@@ -426,6 +421,7 @@ if (isset($_POST['paralelo']) && isset($_POST['paralelo_cap']) && isset($_POST['
 	echo "<input type=\"hidden\" name=\"version_left\" value=\"" . $left_table_name . "\">";
 	echo '<input type="submit" value="Cap&iacute;tulo >>" class="boton" /></form></td>';
 	echo '<td width="5"></td>';
+	} // end if
 	
 	// Display Font Size Change /////////////////////////
 	echo '</td><td><a href="javascript:decreaseFontSize();"><img src="http://biblia.bendicion.net/img/disminuir.png" width="30" height="30" border="0" valign="top" /></a></td>
@@ -565,19 +561,24 @@ if (isset($_POST['paralelo']) && isset($_POST['paralelo_cap']) && isset($_POST['
 		echo '<input type="submit" value="<< Cap&iacute;tulo" class="boton" /></form></td>';
 		echo '<td width="5"></td>';		
 		} // end if
+
+			// Check to see whether there is a next chapter or not
+            $capitulo_next = $capitulo + 1;
+			$find_chapter = mysql_query("SELECT libro, capitulo FROM $left_table_name WHERE libro='$libro' AND capitulo='$capitulo_next'");
+			if (mysql_num_rows($find_chapter)) {
+			
+			// Button Capitulo Siguiente
+            echo '<td><form class="bendicion-bible" action="http://bendicion.net/biblia_y_concordancia.php" method="post">
+              <input type="hidden" name="paralelo" value="'.$libro.'" />
+              <input type="hidden" name="paralelo_cap" value="'.$capitulo_next.'" />
+              <input type="hidden" name="version_derecha" value="'.$right_table_name.'">
+              <input type="hidden" name="version_izquierda" value="'.$left_table_name.'">
+              <input type="hidden" name="version_third" value="'.$third_table_name.'">
+              <input type="submit" value="Cap&iacute;tulo >>" class="boton" /></form></td>		
+              <td width="5"></td>';
+			} // end if
 		
-		// Input button Capitulo Siguiente
-		$capitulo_next = $capitulo + 1;
-		echo '<td><form class="bendicion-bible" action="http://bendicion.net/biblia_y_concordancia.php" method="post">';
-		echo '<input type="hidden" name="paralelo" value="'.$libro.'" />';
-		echo '<input type="hidden" name="paralelo_cap" value="'.$capitulo_next.'" />';
-	    echo '<input type="hidden" name="version_derecha" value="'.$right_table_name.'">';
-		echo '<input type="hidden" name="version_izquierda" value="'.$left_table_name.'">';
-		echo '<input type="hidden" name="version_third" value="'.$third_table_name.'">';
-		echo '<input type="submit" value="Cap&iacute;tulo >>" class="boton" /></form></td>';		
-		echo '<td width="5"></td>';
-		
-	// Display Font Size Change /////////////////////////
+	// Display Font Size Change
 	echo '<td><a href="javascript:decreaseFontSize();"><img src="http://biblia.bendicion.net/img/disminuir.png" width="30" height="30" border="0" valign="top" /></a></td><td width="5"></td><td><a href="javascript:increaseFontSize();"><img src="http://biblia.bendicion.net/img/aumentar.png" width="30" height="30" border="0" valign="top" /></a></td></tr></table>';
 
 		// Display the 3 tables
